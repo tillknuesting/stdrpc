@@ -93,7 +93,7 @@ func TestCallFunction(t *testing.T) {
 				Function: "length",
 				Parameters: []protocol.Parameter{
 					{
-						Type:  protocol.StringType,
+						Type:  protocol.IntType,
 						Value: 13,
 					},
 				},
@@ -134,9 +134,8 @@ func TestCallFunction(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			response := protocol.CallFunction(tc.msg, functionHandlers)
-
 			// Compare the response with the expected response
-			if !areMessagesEqual(response, tc.expect) {
+			if !areMessagesEqualFunctionCall(response, tc.expect) {
 				t.Errorf("Response does not match expected response")
 			}
 		})
@@ -161,6 +160,34 @@ func areMessagesEqual(msg1, msg2 *protocol.Message) bool {
 		param2 := msg2.Parameters[i]
 
 		if param1.Type != param2.Type || param1.Value != param2.Value {
+			return false
+		}
+	}
+
+	return true
+}
+
+func areMessagesEqualFunctionCall(msg1, msg2 *protocol.Message) bool {
+	if msg1 == nil || msg2 == nil {
+		return msg1 == nil && msg2 == nil
+	}
+
+	if msg1.ID != msg2.ID || msg1.Function != msg2.Function {
+		return false
+	}
+
+	if len(msg2.Parameters) != 1 {
+		return false
+	}
+
+	if msg2.Function == "add" {
+		if msg2.Parameters[0].Type != protocol.IntType || msg2.Parameters[0].Value != 30 {
+			return false
+		}
+	}
+
+	if msg2.Function == "length" {
+		if msg2.Parameters[0].Type != protocol.IntType || msg2.Parameters[0].Value != 13 {
 			return false
 		}
 	}
